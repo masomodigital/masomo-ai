@@ -1,148 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Query Interface</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f4f4f9;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: #fff;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        textarea {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .response, .loading {
-            margin-top: 20px;
-            padding: 20px;
-            border-radius: 4px;
-            border: 1px solid #4caf50;
-            background-color: #e1f5fe;
-            color: #000;
-        }
-        .error {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #ffebee;
-            border-radius: 4px;
-            border: 1px solid #f44336;
-            color: #f44336;
-        }
-        .loading {
-            background-color: #fff3cd;
-            border-color: #ffecb5;
-            color: #856404;
-            font-weight: bold;
-            text-align: center;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Query Interface</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f9;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .response, .loading {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 4px;
+      border: 1px solid #4caf50;
+      background-color: #e1f5fe;
+      color: #000;
+    }
+    .error {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: #ffebee;
+      border-radius: 4px;
+      border: 1px solid #f44336;
+      color: #f44336;
+    }
+    .loading {
+      background-color: #fff3cd;
+      border-color: #ffecb5;
+      color: #856404;
+      font-weight: bold;
+      text-align: center;
+    }
+    .copy-btn {
+      background-color: #2196f3;
+      margin-top: 10px;
+    }
+    .copy-btn:hover {
+      background-color: #1976d2;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Masomo AI</h1>
-        <textarea id="query" placeholder="Enter your query here..."></textarea>
-        <button onclick="submitQuery()">Submit Query</button>
+  <div class="container">
+    <h1>Masomo AI</h1>
+    <textarea id="query" placeholder="Enter your query here..."></textarea>
+    <button onclick="submitQuery()">Submit Query</button>
 
-        <div id="loading" class="loading" style="display: none;">Wait please...</div>
-        <div id="response" class="response" style="display: none;"></div>
-        <div id="error" class="error" style="display: none;"></div>
-    </div>
+    <div id="loading" class="loading" style="display: none;">Wait please...</div>
+    <div id="response" class="response" style="display: none;"></div>
+    <button id="copyBtn" class="copy-btn" style="display: none;" onclick="copyResponse()">Copy Response</button>
+    <div id="error" class="error" style="display: none;"></div>
+  </div>
 
-    <script>
-        async function submitQuery() {
-            const query = document.getElementById('query').value;
-            const responseDiv = document.getElementById('response');
-            const errorDiv = document.getElementById('error');
-            const loadingDiv = document.getElementById('loading');
+  <script>
+    let conversationHistory = [];
 
-            // Clear previous messages
-            responseDiv.style.display = 'none';
-            errorDiv.style.display = 'none';
+    async function submitQuery() {
+      const query = document.getElementById('query').value;
+      const responseDiv = document.getElementById('response');
+      const errorDiv = document.getElementById('error');
+      const loadingDiv = document.getElementById('loading');
+      const copyBtn = document.getElementById('copyBtn');
 
-            if (!query) {
-                alert("Please enter a query.");
-                return;
-            }
+      responseDiv.style.display = 'none';
+      errorDiv.style.display = 'none';
+      copyBtn.style.display = 'none';
 
-            loadingDiv.style.display = 'block';
+      if (!query) {
+        alert("Please enter a query.");
+        return;
+      }
 
-            try {
-                const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyABQ8YcAzDTKZRSYDUJuHQW6o3V-q15kRA";
-                const data = {
-                    "contents": [
-                        {
-                            "parts": [
-                                {
-                                    "text": query
-                                }
-                            ]
-                        }
-                    ]
-                };
+      loadingDiv.style.display = 'block';
 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
+      // Add user query to conversation history
+      conversationHistory.push({
+        role: "user",
+        parts: [{ text: query }]
+      });
 
-                const jsonResponse = await response.json();
-                const aiResponse = jsonResponse.candidates[0]?.content?.parts[0]?.text;
+      try {
+        const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyABQ8YcAzDTKZRSYDUJuHQW6o3V-q15kRA";
 
-                loadingDiv.style.display = 'none';
+        const data = {
+          contents: conversationHistory
+        };
 
-                if (aiResponse) {
-                    // Convert newlines and basic markdown to HTML for better formatting
-                    const formatted = aiResponse
-                        .replace(/(?:\r\n|\r|\n)/g, "<br>")
-                        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")  // bold
-                        .replace(/\*(.*?)\*/g, "<em>$1</em>")              // italic
-                        .replace(/^- (.*?)(?=<br>)/gm, "• $1")             // bullets
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
 
-                    responseDiv.innerHTML = `<strong>Response:</strong><div>${formatted}</div>`;
-                    responseDiv.style.display = 'block';
-                } else {
-                    throw new Error('No response received');
-                }
-            } catch (error) {
-                loadingDiv.style.display = 'none';
-                errorDiv.innerHTML = `<strong>Error:</strong><p>${error.message}</p>`;
-                errorDiv.style.display = 'block';
-            }
+        const jsonResponse = await response.json();
+        const aiResponse = jsonResponse.candidates[0]?.content?.parts[0]?.text;
+
+        loadingDiv.style.display = 'none';
+
+        if (aiResponse) {
+          conversationHistory.push({
+            role: "model",
+            parts: [{ text: aiResponse }]
+          });
+
+          const formatted = aiResponse
+            .replace(/(?:\r\n|\r|\n)/g, "<br>")
+            .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+            .replace(/\*(.*?)\*/g, "<em>$1</em>")
+            .replace(/^- (.*?)(?=<br>)/gm, "• $1");
+
+          responseDiv.innerHTML = `<strong>Response:</strong><div>${formatted}</div>`;
+          responseDiv.style.display = 'block';
+          copyBtn.style.display = 'block';
+        } else {
+          throw new Error('No response received');
         }
-    </script>
+      } catch (error) {
+        loadingDiv.style.display = 'none';
+        errorDiv.innerHTML = `<strong>Error:</strong><p>${error.message}</p>`;
+        errorDiv.style.display = 'block';
+      }
+    }
+
+    function copyResponse() {
+      const responseText = document.getElementById('response').innerText;
+      navigator.clipboard.writeText(responseText).then(() => {
+        alert("Response copied to clipboard!");
+      });
+    }
+  </script>
 
 </body>
 </html>
