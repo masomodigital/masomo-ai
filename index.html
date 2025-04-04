@@ -41,12 +41,13 @@
         button:hover {
             background-color: #45a049;
         }
-        .response {
+        .response, .loading {
             margin-top: 20px;
             padding: 20px;
-            background-color: #e1f5fe;
             border-radius: 4px;
             border: 1px solid #4caf50;
+            background-color: #e1f5fe;
+            color: #000;
         }
         .error {
             margin-top: 20px;
@@ -56,6 +57,13 @@
             border: 1px solid #f44336;
             color: #f44336;
         }
+        .loading {
+            background-color: #fff3cd;
+            border-color: #ffecb5;
+            color: #856404;
+            font-weight: bold;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -64,7 +72,8 @@
         <h1>Masomo AI</h1>
         <textarea id="query" placeholder="Enter your query here..."></textarea>
         <button onclick="submitQuery()">Submit Query</button>
-        
+
+        <div id="loading" class="loading" style="display: none;">Wait please...</div>
         <div id="response" class="response" style="display: none;"></div>
         <div id="error" class="error" style="display: none;"></div>
     </div>
@@ -74,8 +83,9 @@
             const query = document.getElementById('query').value;
             const responseDiv = document.getElementById('response');
             const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
 
-            // Clear previous responses
+            // Clear previous messages
             responseDiv.style.display = 'none';
             errorDiv.style.display = 'none';
 
@@ -84,8 +94,9 @@
                 return;
             }
 
+            loadingDiv.style.display = 'block';
+
             try {
-                // Make the API request to Gemini API
                 const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyABQ8YcAzDTKZRSYDUJuHQW6o3V-q15kRA";
                 const data = {
                     "contents": [
@@ -107,20 +118,26 @@
                     body: JSON.stringify(data)
                 });
 
-                if (!response.ok) {
-                    throw new Error('API request failed');
-                }
-
                 const jsonResponse = await response.json();
                 const aiResponse = jsonResponse.candidates[0]?.content?.parts[0]?.text;
 
+                loadingDiv.style.display = 'none';
+
                 if (aiResponse) {
-                    responseDiv.innerHTML = `<strong>Response:</strong><p>${aiResponse}</p>`;
+                    // Convert newlines and basic markdown to HTML for better formatting
+                    const formatted = aiResponse
+                        .replace(/(?:\r\n|\r|\n)/g, "<br>")
+                        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")  // bold
+                        .replace(/\*(.*?)\*/g, "<em>$1</em>")              // italic
+                        .replace(/^- (.*?)(?=<br>)/gm, "• $1")             // bullets
+
+                    responseDiv.innerHTML = `<strong>Response:</strong><div>${formatted}</div>`;
                     responseDiv.style.display = 'block';
                 } else {
                     throw new Error('No response received');
                 }
             } catch (error) {
+                loadingDiv.style.display = 'none';
                 errorDiv.innerHTML = `<strong>Error:</strong><p>${error.message}</p>`;
                 errorDiv.style.display = 'block';
             }
