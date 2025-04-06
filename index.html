@@ -107,23 +107,26 @@
 
       loadingDiv.style.display = 'block';
 
+      // Add user query to conversation history
+      conversationHistory.push({
+        role: "user",
+        parts: [{ text: query }]
+      });
+
       try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbx_WVd2ihELQd1RcD5xfP-LEI7Mlq4N8L5fAj4YLZWW2p7UD2NslO3_e5y3WN0--01w8A/exec", {
-          method: "POST",
+        const response = await fetch("https://script.google.com/macros/s/AKfycbwAwJWq2bkAoy-ib6_hQZu0HKMSINOwFhlcWvZmzIAOjL5jy1J_z-M7JxpCYZQTdIDnZg/exec", {
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json"
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ query: query })
+          body: JSON.stringify({ query })
         });
 
         const data = await response.json();
         loadingDiv.style.display = 'none';
 
-        if (data.response) {
-          conversationHistory.push({ role: "user", parts: [{ text: query }] });
-          conversationHistory.push({ role: "model", parts: [{ text: data.response }] });
-
-          const formatted = data.response
+        if (data.text) {
+          const formatted = data.text
             .replace(/(?:\r\n|\r|\n)/g, "<br>")
             .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
             .replace(/\*(.*?)\*/g, "<em>$1</em>")
@@ -133,7 +136,7 @@
           responseDiv.style.display = 'block';
           copyBtn.style.display = 'block';
         } else {
-          throw new Error(data.error || "No response received from AI.");
+          throw new Error(data.error || "No response received.");
         }
 
       } catch (error) {
@@ -153,3 +156,4 @@
 
 </body>
 </html>
+
