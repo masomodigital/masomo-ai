@@ -107,39 +107,23 @@
 
       loadingDiv.style.display = 'block';
 
-      // Add user query to conversation history
-      conversationHistory.push({
-        role: "user",
-        parts: [{ text: query }]
-      });
-
       try {
-        const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyABQ8YcAzDTKZRSYDUJuHQW6o3V-q15kRA";
-
-        const data = {
-          contents: conversationHistory
-        };
-
-        const response = await fetch(apiUrl, {
-          method: 'POST',
+        const response = await fetch("https://script.google.com/macros/s/AKfycbyKQ_TfTHFDYkvuavGa4qWBatZ0lrMziy8UES6OE641uJpilfC9v4JoEBvPisVMdpNhBg/exec", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json"
           },
-          body: JSON.stringify(data)
+          body: JSON.stringify({ query: query })
         });
 
-        const jsonResponse = await response.json();
-        const aiResponse = jsonResponse.candidates[0]?.content?.parts[0]?.text;
-
+        const data = await response.json();
         loadingDiv.style.display = 'none';
 
-        if (aiResponse) {
-          conversationHistory.push({
-            role: "model",
-            parts: [{ text: aiResponse }]
-          });
+        if (data.response) {
+          conversationHistory.push({ role: "user", parts: [{ text: query }] });
+          conversationHistory.push({ role: "model", parts: [{ text: data.response }] });
 
-          const formatted = aiResponse
+          const formatted = data.response
             .replace(/(?:\r\n|\r|\n)/g, "<br>")
             .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
             .replace(/\*(.*?)\*/g, "<em>$1</em>")
@@ -149,8 +133,9 @@
           responseDiv.style.display = 'block';
           copyBtn.style.display = 'block';
         } else {
-          throw new Error('No response received');
+          throw new Error(data.error || "No response received from AI.");
         }
+
       } catch (error) {
         loadingDiv.style.display = 'none';
         errorDiv.innerHTML = `<strong>Error:</strong><p>${error.message}</p>`;
