@@ -114,7 +114,7 @@
       });
 
       try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbwAwJWq2bkAoy-ib6_hQZu0HKMSINOwFhlcWvZmzIAOjL5jy1J_z-M7JxpCYZQTdIDnZg/exec", {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbxQuuhKr_Ot3q-9kJKhN1XNn7yQ5iRYDmIqqvrz53qJEyr1UGEyCqViAsN4v6V1VWphwQ/exec", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -123,6 +123,12 @@
         });
 
         const data = await response.json();
+
+        // Log the error message for troubleshooting
+        if (data.error) {
+          console.error("Backend Error:", data.error);
+        }
+
         loadingDiv.style.display = 'none';
 
         if (data.text) {
@@ -136,7 +142,7 @@
           responseDiv.style.display = 'block';
           copyBtn.style.display = 'block';
         } else {
-          throw new Error(data.error || "No response received.");
+          throw new Error("No valid response received.");
         }
 
       } catch (error) {
@@ -156,4 +162,5 @@
 
 </body>
 </html>
+
 
