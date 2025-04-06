@@ -89,16 +89,6 @@
   <script>
     let conversationHistory = [];
 
-    // Function to get the last request time from localStorage
-    function getLastRequestTime() {
-        return localStorage.getItem('lastRequestTime');
-    }
-
-    // Function to store the current time as the last request time
-    function setLastRequestTime() {
-        localStorage.setItem('lastRequestTime', Date.now());
-    }
-
     async function submitQuery() {
       const query = document.getElementById('query').value;
       const responseDiv = document.getElementById('response');
@@ -115,16 +105,6 @@
         return;
       }
 
-      // Get the last request time from localStorage
-      const lastRequestTime = getLastRequestTime();
-      const currentTime = Date.now();
-
-      // If it's been less than 1 minute (60000 ms) since the last request, show a wait message
-      if (lastRequestTime && currentTime - lastRequestTime < 60000) {
-        alert("Please wait for 1 minute before submitting another request.");
-        return;
-      }
-
       loadingDiv.style.display = 'block';
 
       // Add user query to conversation history
@@ -137,7 +117,7 @@
         const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyABQ8YcAzDTKZRSYDUJuHQW6o3V-q15kRA";
 
         const data = {
-            contents: conversationHistory
+          contents: conversationHistory
         };
 
         const response = await fetch(apiUrl, {
@@ -165,18 +145,15 @@
             .replace(/\*(.*?)\*/g, "<em>$1</em>")
             .replace(/^- (.*?)(?=<br>)/gm, "• $1");
 
-          responseDiv.innerHTML = `<strong>Response:</strong><div>${formatted}</div>`;
+          responseDiv.innerHTML = <strong>Response:</strong><div>${formatted}</div>;
           responseDiv.style.display = 'block';
           copyBtn.style.display = 'block';
-
-          // Set the current time as the last request time
-          setLastRequestTime();
         } else {
           throw new Error('No response received');
         }
       } catch (error) {
         loadingDiv.style.display = 'none';
-        errorDiv.innerHTML = `<strong>Error:</strong><p>${error.message}</p>`;
+        errorDiv.innerHTML = <strong>Error:</strong><p>${error.message}</p>;
         errorDiv.style.display = 'block';
       }
     }
